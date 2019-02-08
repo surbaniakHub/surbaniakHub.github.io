@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "New solution witch .Net Core CLI"
+title:  "New solution with .Net Core CLI"
 date:   2018-02-20 21:42:46 +0000
 categories: .NET Core
 tags: [.NET Core, CLI]
