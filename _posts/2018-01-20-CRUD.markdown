@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Simple CRUD, code first: ASP.NET Core MVC 2.0 + EF Core 2.0"
-date:   2019-01-20 21:42:46 +0000
+date:   2018-01-20 21:42:46 +0000
 categories: ASP.NET Core
 tags: [ASP.NET Core, EF Core]
 ---
