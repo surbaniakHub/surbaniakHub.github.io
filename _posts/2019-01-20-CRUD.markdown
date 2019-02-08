@@ -1,0 +1,262 @@
+---
+layout: post
+title:  "Simple CRUD, code first: ASP.NET Core MVC 2.0 + EF Core 2.0"
+date:   2019-01-20 21:42:46 +0000
+categories: ASP.NET Core
+tags: [ASP.NET Core, EF Core]
+---
+**This tutorial presents how to create the simple app: Create, Read, Update, and Delete with database MSSQL Server Express using VS Code and Docker.**
+
+This tutorial requires:
+
+  1. Visual Studio Code with extension C#.
+  2. .NET CORE 2.0
+  3. EF CORE 2.0
+  4. Docker container MSSQL Server Express
+
+[Here](/docker/2019/01/16/DockerMSSQL.html) read how to run MSSQL Server using Docker container. You can use another database provider. [Read more](https://docs.microsoft.com/en-us/ef/core/providers/).
+
+# Step 1
+
+In the command prompt (eg. Powershell) create new directory, new solutions “MvcCrud” and add NuGet Packages reference by the commands:
+
+```bash
+> mkdir MvcCrud
+> cd mvccrud
+> dotnet new mvc -n MvcCrud
+```
+
+To open a project in VS Code type command:
+
+```bash
+> code .
+```
+
+The “MvcCrud.csproj” file should looks like this:
+
+![.csproj](/assets/csproj1.jpg)
+
+Modify “.csproj” file adding NuGet Packages reference for scaffolding. Now “.csproj” file should looks like this:
+
+![.csproj2](/assets/csproj2.jpg)
+
+To download packages, in the command prompt type command:
+
+```bash
+> dotnet restore
+```
+
+# Step 2
+
+Add data Models Classes. In the “Models” folder add new classes named “User”, “Post”, “MvcCrudContext”:
+
+![modelclass1-1](/assets/modelclass1-1.jpg)
+
+Modify classes, they should looks like this:
+
+"User.cs"
+
+```csharp
+using System.Collections.Generic;
+namespace MvcCrud.Models
+{
+    public class User
+    {
+        public int UserId { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public ICollection<Post> Posts { get; set; }
+    }
+}
+```
+
+“Post.cs”
+
+```csharp
+namespace MvcCrud.Models
+{
+    public class Post
+    {
+        public int PostId { get; set; }
+        public string Title { get; set; }
+        public string Content { get; set; }
+        public int UserId { get; set; }
+        public User User { get; set; }
+    }
+}
+```
+
+“MvcCrudContext.cs”
+
+```csharp
+using Microsoft.EntityFrameworkCore;
+namespace MvcCrud.Models
+{
+    public class MvcCrudContext : DbContext
+    {
+        public MvcCrudContext (DbContextOptions<MvcCrudContext> options)
+            : base(options)
+            {
+            }
+            public DbSet<MvcCrud.Models.User> User { get; set; }
+            public DbSet<MvcCrud.Models.Post> Post { get; set; }
+    }
+}
+```
+
+# Step 3
+
+Add connect to DataBase. In this tutorial we will use DataBase created in Docker container.
+Run MSSQL container using command prompt:
+
+```bash
+//To show all containers use command:
+> docker ps -a
+//To run container use command:
+> docker start [provide container ID]
+```
+
+Now add to main catalog of project the new folder eg. “EFDB”. In the new folder create new file with extention .sql eg. “efdb.sql”
+
+Use keyboard shortcute “Shift + Ctrl + p” and in the consoll, type “MS SQL”.
+
+![conn1](/assets/conn1.jpg)
+
+select “MS SQL: Connect” >>> select “Create connection profile” >>> enter connection string name (in this case just: localhost) and pres enter >>> you can skip Database name just pres enter >>>
+select authentication type “SQL Login” >>> enter user name (in this case default name: sa) >>> enter password (in this case: Password1*) >>> enter profil name eg. MyProfil.
+Connecting should be successful.
+
+![conn2](/assets/conn2.jpg)
+
+Modify “Startup.cs” class add:
+
+```csharp
+using Microsoft.Extensions.DependencyInjection;
+using MvcCrud.Models;
+```
+
+and
+
+```csharp
+public void ConfigureServices(IServiceCollection services)
+{
+    services.AddMvc();
+    var connection = @"Server=localhost; User Id=SA; Password=Password1*";
+    services.AddDbContext<MvcCrudContext>(options => options.UseSqlServer(connection));
+}
+```
+
+The “Startup.cs” class should looks like this:
+
+```csharp
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using MvcCrud.Models;
+ 
+namespace MvcCrud
+{
+    public class Startup
+    {
+        public Startup(IConfiguration configuration)
+        {
+            Configuration = configuration;
+        }
+ 
+        public IConfiguration Configuration { get; }
+ 
+        // This method gets called by the runtime. Use this method to add services to the container.
+        public void ConfigureServices(IServiceCollection services)
+        {
+            services.AddMvc();
+            var connection = @"Server=localhost; User Id=SA; Password=Password1*";
+            services.AddDbContext<MvcCrudContext>(options => options.UseSqlServer(connection));
+        }
+ 
+        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        {
+            if (env.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
+            else
+            {
+                app.UseExceptionHandler("/Home/Error");
+            }
+ 
+            app.UseStaticFiles();
+ 
+            app.UseMvc(routes =>
+            {
+                routes.MapRoute(
+                    name: "default",
+                    template: "{controller=Home}/{action=Index}/{id?}");
+            });
+        }
+    }
+}
+```
+
+# Step 4
+
+Scaffold Controllers and Razor Views.
+
+In the command prompt type:
+
+```bash
+> dotnet restore
+```
+
+Scaffold for models “User” and “Post”.
+
+```bash
+> dotnet aspnet-codegenerator controller -name UserController -m User -dc MvcCrudContext -outDir Controllers -udl -scripts
+> dotnet aspnet-codegenerator controller -name PostController -m Post -dc MvcCrudContext -outDir Controllers -udl -scripts
+```
+
+This will create following in project:
+
+  1. PostController.cs
+  2. userController.cs
+
+and
+
+  1. Post views
+  2. User views
+
+![scaff](/assets/scaff.jpg)
+
+# Step 5
+
+let’s start to try the app
+
+In the command prompt type:
+
+```bash
+> dotnet run
+```
+
+![run1](/assets/run1.jpg)
+
+The app runs on the default port: “http://localhost:5000”. Start your web browser and type this address in the address bar.
+
+change the url to “http://localhost:5000/user”.
+
+![runapp2](/assets/runapp2.jpg)
+
+Add new user.
+
+![runapp3](/assets/runapp3.jpg)
+
+Next, change the address to “http://localhost:5000/post” and add the new post, you can choose UserID.
+
+![runapp5](/assets/runapp5.jpg)
+
+During this tutorial we created a **sample application**.

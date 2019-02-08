@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Docker – How to run MSSQL Server Express"
-date:   2019-01-15 21:42:46 +0000
+date:   2019-01-16 21:42:46 +0000
 categories: Docker
 tags: [docker, MSSQL express]
 ---
@@ -24,13 +24,17 @@ After changed you may have required to restarting the system.
 Open the command prompt (personally I prefer PowerShell).
 Type command:
 
-`1. docker search Microsoft`
+```bash
+> docker search Microsoft
+```
 
 ![Containers list](/assets/ContList.png)
 
 Type command:
 
-`1. docker pull microsoft/mssql-server-windows-express`
+```bash
+> docker pull microsoft/mssql-server-windows-express
+```
 
 The downloaded SQL Server Express image includes everything we need in order to run SQL Server Express in containers.
 
@@ -39,9 +43,9 @@ The downloaded SQL Server Express image includes everything we need in order to 
 Build a new container using this image.
 Type command:
 
-<pre>
-1. docker run -d -p 1433:1433 -e sa_password=Password1* -e ACCEPT_EULA=Y microsoft/mssql-server-windows-express
-</pre>
+```bash
+> docker run -d -p 1433:1433 -e sa_password=Password1* -e ACCEPT_EULA=Y microsoft/mssql-server-windows-express
+```
 
 The -d flag detaches the created container to the background. The -p flag is for port mapping. In this case creating a static mapping between port TCP:1433 of the host and TCP:1433 of the container. So the first part is for the host and the second part is for the container. The -e set environment variables are required for this particular image, and we provide parameters: sa_password=Password1* (example password for sysadmin). ACCEPT_EULA=Y agree with conditions of the licence.
 
@@ -50,23 +54,23 @@ The -d flag detaches the created container to the background. The -p flag is for
 Check running containers
 Type command:
 
-`1. docker ps`
+`> docker ps`
 
 Also you can use commands:
 
 //To show all containers use the given command:
-`1. docker ps -a`
+`> docker ps -a`
 
 //To show the latest created container (includes all states) use the given command:
-`2. docker ps -l`
+`> docker ps -l`
 
 //To show n last created containers (includes all states) use the given command:
-`3. docker ps -n=-1`
+`> docker ps -n=-1`
 
 //To display total file sizes use the given command:
-`4. docker ps -s`
+`> docker ps -s`
 
 For more information, I encourage you to use the command:
-`docker – – help`
+`> docker – – help`
 
 or visit the [Docker documentation](https://docs.docker.com/).
